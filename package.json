@@ -1,0 +1,18 @@
+{
+	"name": "LoveLeiBot",
+	"version": "1.0.0",
+	"main": "index.js",
+	"license": "MIT",
+	"dependencies": {
+		"concurrently": "^8.2.2",
+		"discord.js": "^14.14.1",
+		"dotenv": "^16.3.1",
+		"express": "^4.18.2",
+		"nodemon": "^3.0.1"
+	},
+	"scripts": {
+		"build": "tsc",
+		"start": "node build/index.js",
+		"dev": "concurrently \"tsc -w\" \"nodemon build/index.js\""
+	}
+}
