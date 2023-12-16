@@ -1,9 +1,10 @@
 import { Client } from "discord.js";
 import { join } from "path";
 import { readdirSync } from "fs";
-import { BotEvent } from "./types";
+import { BotEvent } from "../types";
 
-const eventsPath = join(__dirname, "events");
+const helperPath = join(__dirname, "..");
+const eventsPath = join(helperPath, "events");
 
 const execute = (client: Client) => {
   readdirSync(eventsPath).forEach((file) => {
@@ -11,7 +12,6 @@ const execute = (client: Client) => {
       return;
     }
 
-    console.log(file);
     const event: BotEvent = require(`${eventsPath}/${file}`).default;
     event?.once
       ? client.once(event.name, (...args) => event.execute(...args))

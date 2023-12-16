@@ -1,16 +1,22 @@
-import { Client, Collection, Events, GatewayIntentBits } from "discord.js";
+import { Client, Collection, Events } from "discord.js";
 import { config } from "./config";
-import deploy from "./deploy";
-import execute from "./event";
+import deploy from "./helpers/deploy";
+import execute from "./helpers/event";
+import { SlashCommand } from "./types";
 
 export const client = new Client({
   intents: [
     "GuildMessages",
     "Guilds",
     "DirectMessages",
-    GatewayIntentBits.Guilds,
+    "GuildVoiceStates",
+    "MessageContent",
+    // "GuildMembers",
   ],
 });
+
+client.slashCommands = new Collection<string, SlashCommand>();
+client.cooldowns = new Collection<string, number>();
 //extend the client type to add commands
 client.once(Events.ClientReady, (readyClient) => {
   console.log(`Logged in as ${readyClient.user.tag}`);

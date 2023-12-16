@@ -5,7 +5,14 @@ const event: BotEvent = {
   name: "interactionCreate",
   execute: (interaction: Interaction) => {
     if (interaction.isChatInputCommand()) {
-			const command = interaction.client.
+      const command = interaction.client.slashCommands.get(
+        interaction.commandName
+      );
+      if (command === undefined) {
+        return;
+      }
+
+      command.execute(interaction);
     }
   },
 };
