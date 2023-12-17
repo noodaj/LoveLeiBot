@@ -1,16 +1,20 @@
-import { VoiceConnection } from "@discordjs/voice";
+import { AudioPlayer, VoiceConnection } from "@discordjs/voice";
 import { InternalDiscordGatewayAdapterCreator } from "discord.js";
 
 export class VoicePlayer {
-  static voicePlayer: VoiceConnection = undefined;
-  static createNewVoicePlayer = (
-    channelId: string,
-    guildId: string,
-    adapter: InternalDiscordGatewayAdapterCreator
-  ) => {
-    VoicePlayer.voicePlayer = new VoiceConnection(
-      { channelId, guildId, group: "", selfDeaf: false, selfMute: false },
-      { adapterCreator: adapter }
-    );
-  };
+  public voicePlayer: VoiceConnection;
+  public player: AudioPlayer;
+
+  constructor(connection: VoiceConnection, player: AudioPlayer) {
+    this.voicePlayer = connection;
+    this.player = player;
+
+    if (this.voicePlayer !== undefined) {
+      this.voicePlayer.subscribe(this.player);
+    }
+  }
+
+  public setConnection(newConnection: VoiceConnection) {
+    this.voicePlayer = newConnection;
+  }
 }

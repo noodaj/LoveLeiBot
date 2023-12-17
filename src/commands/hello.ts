@@ -5,7 +5,7 @@ const command: SlashCommand = {
   command: new SlashCommandBuilder()
     .setName("hello")
     .setDescription("says hello"),
-  execute: (interaction) => {
+  execute: (vp, interaction) => {
     interaction.reply("hello world");
   },
 };

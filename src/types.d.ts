@@ -7,15 +7,21 @@ import {
   PermissionResolvable,
   SlashCommandBuilder,
 } from "discord.js";
+import { VoicePlayer } from "./player";
 
 export interface SlashCommand {
-  command: SlashCommandBuilder;
-  execute: (interaction: ChatInputCommandInteraction) => void;
+  command:
+    | SlashCommandBuilder
+    | Omit<SlashCommandBuilder, "addSubcommand" | "addSubcommandGroup">;
+  execute: (
+    player: VoicePlayer,
+    interaction: ChatInputCommandInteraction
+  ) => void;
   cd?: number;
 }
 export interface BotEvent {
   name: string;
-  execute: (...args) => void;
+  execute: (player: VoicePlayer, ...args) => void;
   once?: boolean;
 }
 

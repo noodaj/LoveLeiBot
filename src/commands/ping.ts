@@ -3,7 +3,7 @@ import { SlashCommand } from "../types";
 
 const command: SlashCommand = {
   command: new SlashCommandBuilder().setName("ping").setDescription("pong"),
-  execute: (interaction) => {
+  execute: (vp, interaction) => {
     interaction.reply({
       embeds: [
         new EmbedBuilder()

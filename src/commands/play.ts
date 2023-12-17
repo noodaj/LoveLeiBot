@@ -1,24 +1,29 @@
 import {
-  VoiceConnection,
+  AudioResource,
   VoiceConnectionStatus,
   entersState,
   joinVoiceChannel,
 } from "@discordjs/voice";
 import {
-  Embed,
   EmbedBuilder,
   SlashCommandBuilder,
-  VoiceChannel,
+  SlashCommandStringOption,
 } from "discord.js";
 import { SlashCommand } from "../types";
-import { VoicePlayer } from "../player";
+import { SongFinder } from "../player/songFinder";
+import ytdl from "ytdl-core";
 
 const command: SlashCommand = {
   command: new SlashCommandBuilder()
     .setName("play")
-    .setDescription("Search specific video to play"),
+    .setDescription("Search specific video to play")
+    .addStringOption(
+      (option: SlashCommandStringOption): SlashCommandStringOption =>
+        option.setName("url").setDescription("Song URL").setRequired(true)
+    ),
 
-  execute: async (interaction) => {
+  execute: async (vp, interaction) => {
+    const url = interaction.options.getString("url");
     let channelId = undefined;
     //@ts-ignore
     if (interaction.member.voice.channel === null) {
@@ -37,33 +42,64 @@ const command: SlashCommand = {
 
     ///@ts-ignore
     channelId = interaction.member.voice.channelId;
-    if (!VoicePlayer.voicePlayer) {
-      VoicePlayer.createNewVoicePlayer(
-        channelId,
-        interaction.guildId,
-        interaction.guild.voiceAdapterCreator
-      );
+    if (vp.voicePlayer === undefined) {
+      let connection = joinVoiceChannel({
+        channelId: channelId,
+        guildId: interaction.guildId,
+        adapterCreator: interaction.guild.voiceAdapterCreator,
+        selfDeaf: true,
+      });
+      try {
+        connection = await entersState(
+          connection,
+          VoiceConnectionStatus.Ready,
+          15 * 1000
+        );
+        vp.setConnection(connection);
+      } catch (err) {
+        connection.destroy();
+        console.log(err);
+      }
     }
 
-    // VoicePlayer.voicePlayer.on("stateChange", async (oldState, newState) => {
-    //   if (newState.status === VoiceConnectionStatus.Disconnected) {
     try {
-      await entersState(
-        VoicePlayer.voicePlayer,
-        VoiceConnectionStatus.Connecting,
-        5000
-      );
-    } catch (err) {
-      console.error(err);
-    }
-    //   }
-    // // });
+      const type = SongFinder.valdiateURL(url);
+      const song = await SongFinder.search(url);
+      if (type === "SearchResult") {
+      } else {
+      }
 
-    // const connection =  joinVoiceChannel({
-    //   channelId: channelId,
-    //   guildId: interaction.guildId,
-    //   adapterCreator: interaction.guild.voiceAdapterCreator,
-    // });
+      const downloadedSong = ytdl(song.url, {
+        filter: "audioonly",
+        quality: "highestaudio",
+      }).on("error", (error: Error) => {
+        if (!/Status code|premature close/i.test(error.message)) {
+          interaction.reply({
+            content: "Video is unavailable",
+          });
+        }
+      });
+
+      // const audio: AudioResource = vp.voicePlayer
+      interaction.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setTitle(song.title)
+            .setAuthor({ name: "LoveLeiBot" })
+            .setURL(song.url)
+            .setImage(song.bestThumbnail.url)
+            .setDescription(`By ${song.author.name}\n${song.duration}`),
+        ],
+      });
+    } catch (err: any) {
+      interaction.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setTitle("LoveLeiBot")
+            .setDescription((err as Error).message),
+        ],
+      });
+    }
   },
 };
 

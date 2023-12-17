@@ -3,16 +3,25 @@ import { BotEvent } from "../types";
 
 const event: BotEvent = {
   name: "interactionCreate",
-  execute: (interaction: Interaction) => {
+  execute: (player, interaction: Interaction) => {
     if (interaction.isChatInputCommand()) {
       const command = interaction.client.slashCommands.get(
         interaction.commandName
       );
       if (command === undefined) {
+        interaction.reply({ content: "Command not found", ephemeral: true });
         return;
       }
 
-      command.execute(interaction);
+      try {
+        command.execute(player, interaction);
+      } catch (err) {
+        console.log(err);
+        interaction.reply({
+          content: "Command could not execute",
+          ephemeral: true,
+        });
+      }
     }
   },
 };
