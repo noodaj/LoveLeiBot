@@ -1,5 +1,4 @@
 import { AudioPlayer, VoiceConnection } from "@discordjs/voice";
-import { InternalDiscordGatewayAdapterCreator } from "discord.js";
 
 export class VoicePlayer {
   public voicePlayer: VoiceConnection;
@@ -16,5 +15,9 @@ export class VoicePlayer {
 
   public setConnection(newConnection: VoiceConnection) {
     this.voicePlayer = newConnection;
+  }
+
+  public subscribeVoicePlayer() {
+    this.voicePlayer.subscribe(this.player);
   }
 }

@@ -10,6 +10,9 @@ const command: SlashCommand = {
     if (vp.voicePlayer !== undefined) {
       vp.voicePlayer.destroy();
       vp.voicePlayer = undefined;
+      //these shuld be discraded so it gets garbage collected
+      // vp.player.stop();
+      // vp.player = undefined;
     } else {
       interaction.reply({
         embeds: [

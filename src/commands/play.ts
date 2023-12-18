@@ -1,17 +1,18 @@
 import {
+  AudioPlayerStatus,
   VoiceConnectionStatus,
   createAudioResource,
   entersState,
   joinVoiceChannel,
 } from "@discordjs/voice";
+import ytdl from "discord-ytdl-core";
 import {
   EmbedBuilder,
   SlashCommandBuilder,
   SlashCommandStringOption,
 } from "discord.js";
-import { SongFinder } from "../player/songFinder";
+import { SongFinder } from "../player/SongFinder";
 import { SlashCommand } from "../types";
-import DiscordYTDLCore from "discord-ytdl-core";
 
 const command: SlashCommand = {
   command: new SlashCommandBuilder()
@@ -49,6 +50,7 @@ const command: SlashCommand = {
         adapterCreator: interaction.guild.voiceAdapterCreator,
         selfDeaf: true,
       });
+
       try {
         connection = await entersState(
           connection,
@@ -56,6 +58,7 @@ const command: SlashCommand = {
           15 * 1000
         );
         vp.setConnection(connection);
+        vp.subscribeVoicePlayer();
       } catch (err) {
         connection.destroy();
         console.log(err);
@@ -68,40 +71,60 @@ const command: SlashCommand = {
       if (type === "SearchResult") {
       } else {
       }
-
-      const downloadedSong = DiscordYTDLCore(song.url, {
+      const downloadedSong = ytdl(song.url, {
         filter: "audioonly",
         quality: "highestaudio",
-        fmt: "s16le",
-        encoderArgs: [],
-        opusEncoded: false,
         highWaterMark: 1 << 25,
       }).on("error", (error: Error) => {
+        console.log(error);
         if (!/Status code|premature close/i.test(error.message)) {
           interaction.reply({
-            content: "Video is unavailable",
+            embeds: [
+              new EmbedBuilder()
+                .setDescription("Something went wrong when downloading.")
+                .setTitle("LoveLeiBot"),
+            ],
           });
         }
+        return;
       });
 
-      console.log(downloadedSong);
-      const resource = createAudioResource(downloadedSong);
-      console.log(resource);
-      if (vp.voicePlayer.state.status === VoiceConnectionStatus.Ready) {
-        // console.log(downloadedSong);
-        if (resource) {
+      const resource = createAudioResource(
+        "https://streams.ilovemusic.de/iloveradio8.mp3"
+      );
+      resource.audioPlayer = vp.player;
+      vp.player.play(resource);
+
+      if (downloadedSong !== null) {
+        // const resource = createAudioResource(downloadedSong, {
+        //   inlineVolume: true,
+        // });
+        if (vp.voicePlayer.state.status === VoiceConnectionStatus.Ready) {
           vp.player.play(resource);
+          vp.player.on(AudioPlayerStatus.Playing, () => {
+            console.log("playing");
+          });
+          interaction.reply({
+            embeds: [
+              new EmbedBuilder()
+                .setTitle(song.title)
+                .setAuthor({ name: "LoveLeiBot" })
+                .setURL(song.url)
+                .setImage(song.bestThumbnail.url)
+                .setDescription(`By ${song.author.name}\n${song.duration}`),
+            ],
+          });
         }
-        interaction.reply({
-          embeds: [
-            new EmbedBuilder()
-              .setTitle(song.title)
-              .setAuthor({ name: "LoveLeiBot" })
-              .setURL(song.url)
-              .setImage(song.bestThumbnail.url)
-              .setDescription(`By ${song.author.name}\n${song.duration}`),
-          ],
-        });
+
+        // setTimeout((_) => {
+        //   (async () => {
+        //     if (vp.voicePlayer.state.status === VoiceConnectionStatus.Ready) {
+        //       vp.player.play(resource);
+        //     }
+        //   })().then(() => {
+        //     console.log(resource.started);
+        //   });
+        // });
       }
     } catch (err: any) {
       console.log(err);
@@ -109,7 +132,7 @@ const command: SlashCommand = {
         embeds: [
           new EmbedBuilder()
             .setTitle("LoveLeiBot")
-            .setDescription("Song could not play"),
+            .setDescription("Song could not play."),
         ],
       });
     }
