@@ -1,6 +1,6 @@
 import {
-  AudioResource,
   VoiceConnectionStatus,
+  createAudioResource,
   entersState,
   joinVoiceChannel,
 } from "@discordjs/voice";
@@ -9,9 +9,9 @@ import {
   SlashCommandBuilder,
   SlashCommandStringOption,
 } from "discord.js";
-import { SlashCommand } from "../types";
 import { SongFinder } from "../player/songFinder";
-import ytdl from "ytdl-core";
+import { SlashCommand } from "../types";
+import DiscordYTDLCore from "discord-ytdl-core";
 
 const command: SlashCommand = {
   command: new SlashCommandBuilder()
@@ -69,9 +69,13 @@ const command: SlashCommand = {
       } else {
       }
 
-      const downloadedSong = ytdl(song.url, {
+      const downloadedSong = DiscordYTDLCore(song.url, {
         filter: "audioonly",
         quality: "highestaudio",
+        fmt: "s16le",
+        encoderArgs: [],
+        opusEncoded: false,
+        highWaterMark: 1 << 25,
       }).on("error", (error: Error) => {
         if (!/Status code|premature close/i.test(error.message)) {
           interaction.reply({
@@ -80,23 +84,32 @@ const command: SlashCommand = {
         }
       });
 
-      // const audio: AudioResource = vp.voicePlayer
-      interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setTitle(song.title)
-            .setAuthor({ name: "LoveLeiBot" })
-            .setURL(song.url)
-            .setImage(song.bestThumbnail.url)
-            .setDescription(`By ${song.author.name}\n${song.duration}`),
-        ],
-      });
+      console.log(downloadedSong);
+      const resource = createAudioResource(downloadedSong);
+      console.log(resource);
+      if (vp.voicePlayer.state.status === VoiceConnectionStatus.Ready) {
+        // console.log(downloadedSong);
+        if (resource) {
+          vp.player.play(resource);
+        }
+        interaction.reply({
+          embeds: [
+            new EmbedBuilder()
+              .setTitle(song.title)
+              .setAuthor({ name: "LoveLeiBot" })
+              .setURL(song.url)
+              .setImage(song.bestThumbnail.url)
+              .setDescription(`By ${song.author.name}\n${song.duration}`),
+          ],
+        });
+      }
     } catch (err: any) {
+      console.log(err);
       interaction.reply({
         embeds: [
           new EmbedBuilder()
             .setTitle("LoveLeiBot")
-            .setDescription((err as Error).message),
+            .setDescription("Song could not play"),
         ],
       });
     }
