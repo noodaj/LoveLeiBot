@@ -3,7 +3,6 @@ import { config } from "./config";
 import deploy from "./helpers/deploy";
 import execute from "./helpers/event";
 import { SlashCommand } from "./types";
-import { joinVoiceChannel } from "@discordjs/voice";
 
 export const client = new Client({
   intents: [
@@ -21,8 +20,8 @@ client.cooldowns = new Collection<string, number>();
 //extend the client type to add commands
 client.once(Events.ClientReady, (readyClient) => {
   console.log(`Logged in as ${readyClient.user.tag}`);
-  // deploy(client);
-  // execute(client);
+  deploy(client);
+  execute(client);
 });
 
 client.login(config.DISCORD_TOKEN);

@@ -1,4 +1,5 @@
 import { AudioPlayer, VoiceConnection } from "@discordjs/voice";
+import { visitParameterList } from "typescript";
 
 export class VoicePlayer {
   public voicePlayer: VoiceConnection;

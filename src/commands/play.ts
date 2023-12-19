@@ -1,11 +1,9 @@
 import {
-  AudioPlayerStatus,
   VoiceConnectionStatus,
   createAudioResource,
   entersState,
   joinVoiceChannel,
 } from "@discordjs/voice";
-import ytdl from "discord-ytdl-core";
 import {
   EmbedBuilder,
   SlashCommandBuilder,
@@ -13,7 +11,7 @@ import {
 } from "discord.js";
 import { SongFinder } from "../player/SongFinder";
 import { SlashCommand } from "../types";
-
+import ytdl from "ytdl-core";
 const command: SlashCommand = {
   command: new SlashCommandBuilder()
     .setName("play")
@@ -52,14 +50,15 @@ const command: SlashCommand = {
       });
 
       try {
-        connection = await entersState(
-          connection,
-          VoiceConnectionStatus.Ready,
-          15 * 1000
-        );
+        // connection = await entersState(
+        //   connection,
+        //   VoiceConnectionStatus.Ready,
+        //   15 * 1000
+        // );
         vp.setConnection(connection);
         vp.subscribeVoicePlayer();
       } catch (err) {
+        //voice connection no longer needed garbage collected
         connection.destroy();
         console.log(err);
       }
@@ -73,11 +72,15 @@ const command: SlashCommand = {
       }
       const downloadedSong = ytdl(song.url, {
         filter: "audioonly",
-        quality: "highestaudio",
-        highWaterMark: 1 << 25,
+        highWaterMark: 1 << 62,
+        liveBuffer: 1 << 62,
+        dlChunkSize: 0,
+        quality: "lowestaudio",
       }).on("error", (error: Error) => {
-        console.log(error);
         if (!/Status code|premature close/i.test(error.message)) {
+          if (interaction.replied) {
+            interaction.deleteReply();
+          }
           interaction.reply({
             embeds: [
               new EmbedBuilder()
@@ -85,56 +88,39 @@ const command: SlashCommand = {
                 .setTitle("LoveLeiBot"),
             ],
           });
+          return;
         }
-        return;
       });
 
-      const resource = createAudioResource(
-        "https://streams.ilovemusic.de/iloveradio8.mp3"
-      );
-      resource.audioPlayer = vp.player;
-      vp.player.play(resource);
+      const resource = createAudioResource(downloadedSong);
+      if (vp.voicePlayer.state.status === VoiceConnectionStatus.Ready) {
+        vp.player.play(resource);
+        vp.player.on("stateChange", (oldState, newState) => {
+          console.log("change state", newState.status);
+        });
 
-      if (downloadedSong !== null) {
-        // const resource = createAudioResource(downloadedSong, {
-        //   inlineVolume: true,
-        // });
-        if (vp.voicePlayer.state.status === VoiceConnectionStatus.Ready) {
-          vp.player.play(resource);
-          vp.player.on(AudioPlayerStatus.Playing, () => {
-            console.log("playing");
-          });
-          interaction.reply({
-            embeds: [
-              new EmbedBuilder()
-                .setTitle(song.title)
-                .setAuthor({ name: "LoveLeiBot" })
-                .setURL(song.url)
-                .setImage(song.bestThumbnail.url)
-                .setDescription(`By ${song.author.name}\n${song.duration}`),
-            ],
-          });
-        }
-
-        // setTimeout((_) => {
-        //   (async () => {
-        //     if (vp.voicePlayer.state.status === VoiceConnectionStatus.Ready) {
-        //       vp.player.play(resource);
-        //     }
-        //   })().then(() => {
-        //     console.log(resource.started);
-        //   });
-        // });
+        interaction.reply({
+          embeds: [
+            new EmbedBuilder()
+              .setTitle(song.title)
+              .setAuthor({ name: "LoveLeiBot" })
+              .setURL(song.url)
+              .setImage(song.bestThumbnail.url)
+              .setDescription(`By ${song.author.name}\n${song.duration}`),
+          ],
+        });
       }
     } catch (err: any) {
       console.log(err);
-      interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setTitle("LoveLeiBot")
-            .setDescription("Song could not play."),
-        ],
-      });
+      if (!interaction.replied) {
+        interaction.reply({
+          embeds: [
+            new EmbedBuilder()
+              .setTitle("LoveLeiBot")
+              .setDescription("Song could not play."),
+          ],
+        });
+      }
     }
   },
 };
