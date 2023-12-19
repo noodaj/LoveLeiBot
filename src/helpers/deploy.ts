@@ -40,6 +40,11 @@ const deploy = (client: Client) => {
         .then(() => {
           console.log('Commands sucessfully uploaded')
         })
+
+      await rest.put(
+        Routes.applicationGuildCommands(config.CLIENT_ID, config.MAIN_GUILD_ID),
+        { body: commands },
+      )
     } catch (error) {
       console.error(error)
     }

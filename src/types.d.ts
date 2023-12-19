@@ -4,7 +4,7 @@ import {
   Interaction,
   SlashCommandBuilder,
 } from 'discord.js'
-import { Player, VoicePlayer } from './player'
+import { Player, VoicePlayer } from './player/Player'
 
 type slashCommandType = 'music' | 'other'
 

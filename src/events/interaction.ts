@@ -1,6 +1,6 @@
 import { Interaction } from 'discord.js'
 import { BotEvent } from '../types'
-import { Player } from '../player'
+import { Player } from '../player/Player'
 
 const event: BotEvent = {
   name: 'interactionCreate',

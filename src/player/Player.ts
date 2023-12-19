@@ -5,10 +5,12 @@ import {
   joinVoiceChannel,
 } from '@discordjs/voice'
 import { CacheType, ChatInputCommandInteraction } from 'discord.js'
+import { Song } from './Song'
 
 export class Player {
   public voiceConnection: VoiceConnection
   public audioPlayer: AudioPlayer
+  public queue: Song[]
 
   constructor(audioPlayer: AudioPlayer, connection?: VoiceConnection) {
     this.audioPlayer = audioPlayer

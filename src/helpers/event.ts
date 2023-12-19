@@ -7,7 +7,7 @@ import {
   createAudioPlayer,
   getVoiceConnection,
 } from '@discordjs/voice'
-import { Player } from '../player'
+import { Player } from '../player/Player'
 
 const helperPath = join(__dirname, '..')
 const eventsPath = join(helperPath, 'events')

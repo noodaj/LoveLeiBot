@@ -11,7 +11,7 @@ import {
 import ytdl from 'ytdl-core'
 import { SongFinder } from '../player/SongFinder'
 import { SlashCommand } from '../types'
-import { Player } from '../player'
+import { Player } from '../player/Player'
 
 const command: SlashCommand = {
   command: new SlashCommandBuilder()
