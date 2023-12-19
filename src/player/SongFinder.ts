@@ -1,12 +1,12 @@
-import { url } from "inspector";
-import ytsr, { Video } from "ytsr";
+import { url } from 'inspector'
+import ytsr, { Video } from 'ytsr'
 
 type listOptions =
-  | "YoutubeVideo"
-  | "YoutubeVideoID"
-  | "YoutubePlayList"
-  | "YoutubePlaylistID"
-  | "SearchResult";
+  | 'YoutubeVideo'
+  | 'YoutubeVideoID'
+  | 'YoutubePlayList'
+  | 'YoutubePlaylistID'
+  | 'SearchResult'
 
 export class SongFinder {
   static regex = {
@@ -17,28 +17,28 @@ export class SongFinder {
     YouTubePlaylist:
       /^((?:https?:)\/\/)?((?:www|m)\.)?((?:youtube\.com)).*(youtu.be\/|list=)([^#&?]*).*/,
     YouTubePlaylistID: /[&?]list=([^&]+)/,
-  };
+  }
 
   static valdiateURL(url: string): listOptions {
     if (url.match(this.regex.YouTubeVideo)) {
-      const t = url.match(this.regex.YouTubeVideo);
-      console.log(t ? t[7] : null);
-      return "YoutubeVideo";
+      const t = url.match(this.regex.YouTubeVideo)
+      console.log(t ? t[7] : null)
+      return 'YoutubeVideo'
     } else if (url.match(this.regex.YouTubeVideoID)) {
-      return "YoutubeVideoID";
+      return 'YoutubeVideoID'
     } else if (url.match(this.regex.YouTubePlaylist)) {
-      return "YoutubePlayList";
+      return 'YoutubePlayList'
     } else if (url.match(this.regex.YouTubePlaylistID)) {
-      return "YoutubePlaylistID";
+      return 'YoutubePlaylistID'
     } else {
-      return "SearchResult";
+      return 'SearchResult'
     }
   }
   static async search(searchQuery: string, limit: number = 10) {
-    const res = await ytsr.getFilters(searchQuery);
-    const video = res.get("Type").get("Video");
-    const URL = await ytsr(video.url, { limit });
+    const res = await ytsr.getFilters(searchQuery)
+    const video = res.get('Type').get('Video')
+    const URL = await ytsr(video.url, { limit })
 
-    return URL.items[0] as Video;
+    return URL.items[0] as Video
   }
 }

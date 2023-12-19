@@ -1,28 +1,29 @@
-import { Interaction } from "discord.js";
-import { BotEvent } from "../types";
+import { Interaction } from 'discord.js'
+import { BotEvent } from '../types'
+import { Player } from '../player'
 
 const event: BotEvent = {
-  name: "interactionCreate",
-  execute: (player, interaction: Interaction) => {
+  name: 'interactionCreate',
+  execute: (interaction: Interaction, ...args) => {
     if (interaction.isChatInputCommand()) {
       const command = interaction.client.slashCommands.get(
-        interaction.commandName
-      );
+        interaction.commandName,
+      )
       if (command === undefined) {
-        interaction.reply({ content: "Command not found", ephemeral: true });
-        return;
+        interaction.reply({ content: 'Command not found', ephemeral: true })
+        return
       }
 
       try {
-        command.execute(player, interaction);
+        command.execute(interaction, ...args)
       } catch (err) {
-        console.log(err);
+        console.log(err)
         interaction.reply({
-          content: "Command could not execute",
+          content: 'Command could not execute',
           ephemeral: true,
-        });
+        })
       }
     }
   },
-};
-export default event;
+}
+export default event

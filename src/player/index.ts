@@ -1,24 +1,73 @@
-import { AudioPlayer, VoiceConnection } from "@discordjs/voice";
-import { visitParameterList } from "typescript";
+import {
+  AudioPlayer,
+  VoiceConnection,
+  VoiceConnectionStatus,
+  joinVoiceChannel,
+} from '@discordjs/voice'
+import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 
-export class VoicePlayer {
-  public voicePlayer: VoiceConnection;
-  public player: AudioPlayer;
+export class Player {
+  public voiceConnection: VoiceConnection
+  public audioPlayer: AudioPlayer
 
-  constructor(connection: VoiceConnection, player: AudioPlayer) {
-    this.voicePlayer = connection;
-    this.player = player;
-
-    if (this.voicePlayer !== undefined) {
-      this.voicePlayer.subscribe(this.player);
-    }
+  constructor(audioPlayer: AudioPlayer, connection?: VoiceConnection) {
+    this.audioPlayer = audioPlayer
   }
 
   public setConnection(newConnection: VoiceConnection) {
-    this.voicePlayer = newConnection;
+    this.voiceConnection = newConnection
   }
 
-  public subscribeVoicePlayer() {
-    this.voicePlayer.subscribe(this.player);
+  public subscribevoiceConnection() {
+    this.voiceConnection.subscribe(this.audioPlayer)
+  }
+
+  public onChangeState() {
+    if (this.voiceConnection) {
+      this.voiceConnection.on('stateChange', (_, newState) => {
+        if (
+          newState.status === VoiceConnectionStatus.Disconnected &&
+          this.voiceConnection.state.status !== VoiceConnectionStatus.Destroyed
+        ) {
+          this.voiceConnection.destroy()
+          this.audioPlayer.stop()
+        }
+      })
+      return
+    }
+    if (this.audioPlayer) {
+      this.audioPlayer.on('stateChange', () => {
+        //if we stop the bot with a slash command
+        this.audioPlayer.stop()
+      })
+    }
+  }
+
+  public join(
+    //   // connection = await entersState(
+    //   //   connection,
+    //   //   VoiceConnectionStatus.Ready,
+    //   //   15 * 1000
+    //   // );
+    interaction: ChatInputCommandInteraction<CacheType>,
+    channelId: any,
+  ) {
+    let connection: VoiceConnection
+    try {
+      connection = joinVoiceChannel({
+        adapterCreator: interaction.guild.voiceAdapterCreator,
+        channelId: channelId,
+        guildId: interaction.guildId,
+      })
+
+      this.voiceConnection = connection
+      this.subscribevoiceConnection()
+      this.onChangeState()
+      return true
+    } catch (err) {
+      connection.destroy()
+      console.log(err)
+      return false
+    }
   }
 }
