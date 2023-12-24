@@ -32,7 +32,7 @@ const deploy = (client: Client) => {
       console.log(
         `Started refreshing ${commands.length} application (/) commands.`,
       )
-      const data = await rest
+      await rest
         .put(
           Routes.applicationGuildCommands(config.CLIENT_ID, config.GUILD_ID),
           { body: commands },

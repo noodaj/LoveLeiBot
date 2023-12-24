@@ -13,22 +13,28 @@ const helperPath = join(__dirname, '..')
 const eventsPath = join(helperPath, 'events')
 
 const execute = (client: Client) => {
+  const player: Player = new Player(createAudioPlayer())
   readdirSync(eventsPath).forEach((file) => {
     if (!file.endsWith('.js')) {
       return
     }
 
-    const player: Player = new Player(createAudioPlayer())
-
     const event: BotEvent = require(`${eventsPath}/${file}`).default
-    if (event.name === 'interactionCreate') {
-      client.on(event.name, (interaction) => event.execute(interaction, player))
-    }
     if (event.name === 'songAdd') {
       player.on('songAdd', (player, song) => {
-        console.log('song add')
+        event.execute(player, song)
       })
+      // console.log('eventnames', player.eventNames())
+      // console.log('listeners', player.listeners('songAdd'))
+      // player.on(event.name, (player, song) => {
+      //   // event.execute(player, song)
+      // })
     }
+    if (event.name === 'interactionCreate') {
+      client.on(event.name, (interaction) => event.execute(interaction, player))
+      console.log(player)
+    }
+
     // } else {
     //   event?.once
     //     ? client.once(event.name, (...args) => event.execute(...args))

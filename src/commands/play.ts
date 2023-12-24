@@ -65,7 +65,6 @@ const command: SlashCommand = {
       } else if (player.audioPlayer.state.status === AudioPlayerStatus.Idle) {
         player.queue.shift()
       }
-      console.log(player.queue)
       await player.playSong(url)
       // const downloadedSong = ytdl(song.url, {
       //   filter: 'audioonly',

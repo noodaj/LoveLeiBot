@@ -88,9 +88,11 @@ export class Player extends EventEmitter {
     // }
     try {
       const song = await SongFinder.getURL(url)
-      const emitters = this.voiceConnection.emit('songAdd', this.queue, song)
-      console.log(emitters)
+      console.log('emitters', this.listeners('songAdd'))
+      this.emit('songAdd', this.queue, song)
       this.queue.push(song)
-    } catch (err) {}
+    } catch (err) {
+      console.log(err)
+    }
   }
 }
