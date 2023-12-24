@@ -17,10 +17,15 @@ export interface SlashCommand {
 }
 export interface BotEvent {
   name: string
-  execute: (interaction: Interaction, ...args: any) => void
+  execute: (...args: any) => void
   once?: boolean
+  SlashOrPlayer: 'SlashCommand' | 'PlayerCommand'
 }
 
+export interface PlayerEvents {
+  songAdd: [player: Player, song: Song]
+  songChange: [player: Player, song: Song]
+}
 declare module 'discord.js' {
   export interface Client {
     slashCommands: Collection<string, SlashCommand>

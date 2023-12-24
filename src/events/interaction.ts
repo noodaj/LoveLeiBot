@@ -3,7 +3,8 @@ import { BotEvent } from '../types'
 
 const event: BotEvent = {
   name: 'interactionCreate',
-  execute: (interaction: Interaction, ...args) => {
+  execute: (...args: any[]) => {
+    const interaction = args[0]
     if (interaction.isChatInputCommand()) {
       const command = interaction.client.slashCommands.get(
         interaction.commandName,
@@ -14,7 +15,7 @@ const event: BotEvent = {
       }
 
       try {
-        command.execute(interaction, ...args)
+        command.execute(...args)
       } catch (err) {
         console.log(err)
         interaction.reply({
@@ -24,5 +25,6 @@ const event: BotEvent = {
       }
     }
   },
+  SlashOrPlayer: 'SlashCommand',
 }
 export default event

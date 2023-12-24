@@ -1,14 +1,9 @@
-import {
-  AudioPlayerStatus,
-  VoiceConnectionStatus,
-  createAudioResource,
-} from '@discordjs/voice'
+import { AudioPlayerStatus, VoiceConnectionStatus } from '@discordjs/voice'
 import {
   EmbedBuilder,
   SlashCommandBuilder,
   SlashCommandStringOption,
 } from 'discord.js'
-import ytdl from 'ytdl-core'
 import { Player } from '../player/Player'
 import { SongFinder } from '../player/SongFinder'
 import { SlashCommand } from '../types'
@@ -49,9 +44,7 @@ const command: SlashCommand = {
     }
 
     try {
-      // const song = await SongFinder.search(url)
       const song = await SongFinder.getURL(url)
-      player.voiceConnection.emit('songAdd', player, song)
       player.queue.push(song)
       if (player.audioPlayer.state.status === AudioPlayerStatus.Playing) {
         interaction.reply({
@@ -61,55 +54,42 @@ const command: SlashCommand = {
               .setDescription(`${song.title} has been added to the queue.`),
           ],
         })
-        return
-      } else if (player.audioPlayer.state.status === AudioPlayerStatus.Idle) {
-        player.queue.shift()
       }
-      await player.playSong(url)
-      // const downloadedSong = ytdl(song.url, {
-      //   filter: 'audioonly',
-      //   highWaterMark: 1 << 62,
-      //   liveBuffer: 1 << 62,
-      //   dlChunkSize: 0,
-      //   quality: 'lowestaudio',
-      // }).on('error', (error: Error) => {
-      //   console.log(error)
-      //   interaction.reply({ content: 'Fake' })
-      //   if (!/Status code|premature close/i.test(error.message)) {
-      //     if (interaction.replied) {
-      //       interaction.deleteReply()
-      //     }
-      //     interaction.reply({
-      //       embeds: [
-      //         new EmbedBuilder()
-      //           .setDescription('Something went wrong when downloading.')
-      //           .setTitle('LoveLeiBot'),
-      //       ],
-      //     })
-      //     return
-      //   }
-      // })
 
-      // const resource = createAudioResource(downloadedSong)
-      // if (player.voiceConnection.state.status === VoiceConnectionStatus.Ready) {
-      //   try {
-      //     player.audioPlayer.play(resource)
-      //   } catch (err) {
-      //     console.log(err)
-      //     return
-      //   }
-
-      //   interaction.reply({
-      //     embeds: [
-      //       new EmbedBuilder()
-      //         .setTitle(song.title)
-      //         .setAuthor({ name: 'LoveLeiBot' })
-      //         .setURL(song.url!)
-      //         .setImage(song.thumbnail)
-      //         .setDescription(`By ${song.author}\n${song.duration}`),
-      //     ],
-      //   })
-      // }
+      if (player.audioPlayer.state.status === AudioPlayerStatus.Idle) {
+        const song = player.queue[0]
+        await player.playSong(song)
+        interaction.reply({
+          embeds: [
+            new EmbedBuilder()
+              .setTitle('LoveLeiBot')
+              .setDescription(`By ${song.author}\n${song.duration}`)
+              .setAuthor({ name: 'LoveLeiBot' })
+              .setURL(song.url!)
+              .setImage(song.thumbnail),
+          ],
+        })
+      }
+      player.audioPlayer.on('stateChange', async (oldState, newState) => {
+        //if idle and queue
+        if (
+          player.audioPlayer.state.status === AudioPlayerStatus.Idle &&
+          player.queue.length > 0
+        ) {
+          const song = player.queue[0]
+          await player.playSong(song)
+          interaction.followUp({
+            embeds: [
+              new EmbedBuilder()
+                .setTitle('LoveLeiBot')
+                .setDescription(`By ${song.author}\n${song.duration}`)
+                .setAuthor({ name: 'LoveLeiBot' })
+                .setURL(song.url!)
+                .setImage(song.thumbnail),
+            ],
+          })
+        }
+      })
     } catch (err: any) {
       console.log(err)
       if (!interaction.replied) {

@@ -9,6 +9,7 @@ import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { Song } from './Song'
 import { SongFinder } from './SongFinder'
 import { EventEmitter } from 'node:events'
+import { PlayerEvents } from '../types'
 
 export class Player extends EventEmitter {
   public voiceConnection: VoiceConnection
@@ -82,17 +83,20 @@ export class Player extends EventEmitter {
     }
   }
 
-  public async playSong(url: string) {
-    // if (this.queue.length === 0) {
-    //   return
-    // }
+  public async playSong(song: Song) {
     try {
-      const song = await SongFinder.getURL(url)
-      console.log('emitters', this.listeners('songAdd'))
-      this.emit('songAdd', this.queue, song)
-      this.queue.push(song)
+      this.queue.shift()
+      console.log(song.title)
+      this.emit('songAdd', this, song)
     } catch (err) {
-      console.log(err)
+      // console.log(err)
     }
   }
+}
+
+export declare interface Player {
+  on<K extends keyof PlayerEvents>(
+    event: K,
+    listener: (...args: PlayerEvents[K]) => void,
+  ): this
 }
