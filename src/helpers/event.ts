@@ -24,6 +24,11 @@ const execute = (client: Client) => {
     if (event.name === 'interactionCreate') {
       client.on(event.name, (interaction) => event.execute(interaction, player))
     }
+    if (event.name === 'songAdd') {
+      player.on('songAdd', (player, song) => {
+        console.log('song add')
+      })
+    }
     // } else {
     //   event?.once
     //     ? client.once(event.name, (...args) => event.execute(...args))
