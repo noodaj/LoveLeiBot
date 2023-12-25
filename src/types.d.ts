@@ -5,6 +5,7 @@ import {
   SlashCommandBuilder,
 } from 'discord.js'
 import { Player, VoicePlayer } from './player/Player'
+import { Song } from './player/Song'
 
 type slashCommandType = 'music' | 'other'
 
@@ -23,7 +24,11 @@ export interface BotEvent {
 }
 
 export interface PlayerEvents {
-  songAdd: [player: Player, song: Song]
+  songAdd: [
+    player: Player,
+    song: Song,
+    interaction: ChatInputCommandInteraction,
+  ]
   songChange: [player: Player, song: Song]
 }
 declare module 'discord.js' {

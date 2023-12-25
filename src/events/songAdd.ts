@@ -11,6 +11,10 @@ const event: BotEvent = {
     const player = args[0] as Player
     const song = args[1] as Song
 
+    const last = player.queue.shift()
+
+    //if last song or queue is 0 then we have a new song and should reply else follow up
+    player.emit('songChange', player, song)
     const downloadedSong = ytdl(song.url, {
       filter: 'audioonly',
       highWaterMark: 1 << 62,
@@ -32,6 +36,9 @@ const event: BotEvent = {
       } catch (err) {
         return
       }
+    }
+    if (player.firstSong) {
+      player.firstSong = false
     }
   },
   SlashOrPlayer: 'PlayerCommand',

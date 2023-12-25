@@ -11,9 +11,9 @@ const command: SlashCommand = {
     player.onChangeState()
     if (player.voiceConnection !== undefined) {
       player.voiceConnection.destroy()
+      player.audioPlayer.stop()
       player.queue = []
       interaction.reply({ content: 'bye' })
-      player.audioPlayer.stop()
     } else {
       interaction.reply({
         embeds: [

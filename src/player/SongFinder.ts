@@ -21,7 +21,6 @@ export class SongFinder {
 
   static valdiateURL(url: string): listOptions {
     if (url.match(this.regex.YouTubeVideo)) {
-      const t = url.match(this.regex.YouTubeVideo)
       return 'YoutubeVideo'
     } else if (url.match(this.regex.YouTubeVideoID)) {
       return 'YoutubeVideoID'
@@ -42,10 +41,12 @@ export class SongFinder {
     const res = await ytsr.getFilters(searchQuery)
     const video = res.get('Type').get('Video')
 
-    const songs = await ytsr(video.url, { limit })
-    const best = songs.items[0] as Video
-		//actual listof results
-    const results = (songs.items as Video[]).map((item: Video, i) => {
+    const songs = await ytsr(video.url, { limit, safeSearch: true })
+
+    const filtered = songs.items.filter((item: Video) => item.type === 'video')
+    const best = filtered[0] as Video
+    //actual listof results
+    const results = (filtered as Video[]).map((item: Video, i) => {
       const songs = {
         url: item.url,
         thumbnail: item.url,
@@ -75,10 +76,14 @@ export class SongFinder {
         return song
       }
       case 'YoutubeVideo': {
-        song = await this.search(url, 1, true)
+        const splitURL =
+          url.split('&')[0] === url ? url.split('?')[0] : url.split('&')[0]
+        song = await this.search(splitURL, 1, true)
         return song
       }
       case 'YoutubeVideoID': {
+      }
+      case 'YoutubePlayList': {
       }
     }
   }

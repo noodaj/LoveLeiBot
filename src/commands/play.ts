@@ -22,6 +22,7 @@ const command: SlashCommand = {
 
     const url = interaction.options.getString('url')
     let channelId = undefined
+
     //@ts-ignore
     if (interaction.member.voice.channel === null) {
       return interaction.reply({
@@ -45,7 +46,9 @@ const command: SlashCommand = {
 
     try {
       const song = await SongFinder.getURL(url)
+      song.interaction = interaction
       player.queue.push(song)
+
       if (player.audioPlayer.state.status === AudioPlayerStatus.Playing) {
         interaction.reply({
           embeds: [
@@ -57,37 +60,22 @@ const command: SlashCommand = {
       }
 
       if (player.audioPlayer.state.status === AudioPlayerStatus.Idle) {
+        if (player.queue.length === 0) {
+          player.firstSong = true
+        }
         const song = player.queue[0]
         await player.playSong(song)
-        interaction.reply({
-          embeds: [
-            new EmbedBuilder()
-              .setTitle('LoveLeiBot')
-              .setDescription(`By ${song.author}\n${song.duration}`)
-              .setAuthor({ name: 'LoveLeiBot' })
-              .setURL(song.url!)
-              .setImage(song.thumbnail),
-          ],
-        })
       }
       player.audioPlayer.on('stateChange', async (oldState, newState) => {
         //if idle and queue
-        if (
-          player.audioPlayer.state.status === AudioPlayerStatus.Idle &&
-          player.queue.length > 0
-        ) {
-          const song = player.queue[0]
-          await player.playSong(song)
-          interaction.followUp({
-            embeds: [
-              new EmbedBuilder()
-                .setTitle('LoveLeiBot')
-                .setDescription(`By ${song.author}\n${song.duration}`)
-                .setAuthor({ name: 'LoveLeiBot' })
-                .setURL(song.url!)
-                .setImage(song.thumbnail),
-            ],
-          })
+        if (player.audioPlayer.state.status === AudioPlayerStatus.Idle) {
+          if (player.queue.length === 0) {
+            player.firstSong = true
+          }
+          if (player.queue.length > 0) {
+            const song = player.queue[0]
+            await player.playSong(song)
+          }
         }
       })
     } catch (err: any) {

@@ -11,7 +11,6 @@ export const client = new Client({
     'DirectMessages',
     'GuildVoiceStates',
     'MessageContent',
-    // "GuildMembers",
   ],
 })
 
